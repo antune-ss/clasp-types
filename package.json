@@ -1,47 +1,48 @@
 {
-  "name": "clasp-types",
-  "version": "1.4.0",
-  "description": "A d.ts generator for clasp projects",
-  "homepage": "https://github.com/bkper/clasp-types#readme",
-  "main": "./dist/index.js",
-  "bin": {
-    "clasp-types": "./dist/index.js"
-  },
-  "author": "Mael Caldas (https://github.com/maelcaldas)",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bkper/clasp-types.git"
-  },
-  "license": "MIT",
-  "scripts": {
-    "clean": "rimraf dist",
-    "prebuild": "copyfiles ./src/lib/builders/*.json -f dist/lib/builders/",
-    "build": "tsc -p .",
-    "watch": "yarn build -w",
-    "patch": "yarn version --patch",
-    "minor": "yarn version --minor",
-    "major": "yarn version --major",
-    "preversion": "yarn build",
-    "postversion": "git push && git push --tags && yarn publish --access public --new-version $npm_package_version && echo \"Successfully released version $npm_package_version!\""
-  },
-  "devDependencies": {
-    "@types/fs-extra": "^8.1.0",
-    "@types/node": "^14.0.1",
-    "copyfiles": "^2.2.0",
-    "nodemon": "^2.0.4",
-    "rimraf": "^3.0.2",
-    "ts-node": "^8.10.1",
-    "typescript": "^3.9.2"
-  },
-  "dependencies": {
-    "commander": "^5.1.0",
-    "fs-extra": "^9.0.0",
-    "typedoc": "^0.17.6"
-  },
-  "keywords": [
-    "google-apps-script",
-    "typescript",
-    "clasp",
-    "sdk"
-  ]
+    "name": "clasp-types",
+    "version": "1.4.0",
+    "description": "A d.ts generator for clasp projects",
+    "homepage": "https://github.com/bkper/clasp-types#readme",
+    "main": "./dist/index.js",
+    "bin": {
+        "clasp-types": "./dist/index.js"
+    },
+    "author": "Mael Caldas (https://github.com/maelcaldas)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bkper/clasp-types.git"
+    },
+    "license": "MIT",
+    "scripts": {
+        "clean": "rimraf dist",
+        "prebuild": "copyfiles ./src/lib/builders/*.json -f dist/lib/builders/",
+        "build": "tsc -p .",
+        "dev": "yarn build -w",
+        "test": "bun test",
+        "patch": "yarn version --patch",
+        "minor": "yarn version --minor",
+        "major": "yarn version --major",
+        "preversion": "yarn build",
+        "postversion": "git push && git push --tags && yarn publish --access public --new-version $npm_package_version && echo \"Successfully released version $npm_package_version!\""
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^8.1.0",
+        "@types/node": "^14.0.1",
+        "copyfiles": "^2.2.0",
+        "nodemon": "^2.0.4",
+        "rimraf": "^3.0.2",
+        "ts-node": "^8.10.1",
+        "typescript": "^3.9.2"
+    },
+    "dependencies": {
+        "commander": "^5.1.0",
+        "fs-extra": "^9.0.0",
+        "typedoc": "^0.17.6"
+    },
+    "keywords": [
+        "google-apps-script",
+        "typescript",
+        "clasp",
+        "sdk"
+    ]
 }

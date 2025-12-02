@@ -13,6 +13,12 @@ export interface TypedocKind {
   }
   defaultValue?: string
   type?: TypedocType
+  typeParameter?: TypedocTypeParameter[]
+}
+
+export interface TypedocTypeParameter {
+  name: string
+  type?: TypedocType
 }
 
 
@@ -41,6 +47,7 @@ export interface TypedocType {
   declaration?: TypedocDeclaration
   types?: TypedocType[]
   elementType?: TypedocType
+  typeArguments?: TypedocType[]
 }
 
 export interface TypedocParameter {

@@ -109,9 +109,23 @@ export abstract class Definition {
         builder.append('boolean');
       } else if (type.name) {
         builder.append(type.name);
+        this.buildTypeArguments(builder, type.typeArguments);
       } else if (type.value) {
         builder.append(`"${type.value}"`);
       }
+    }
+  }
+
+  protected buildTypeArguments(builder: Builder, typeArguments?: TypedocType[]): void {
+    if (typeArguments && typeArguments.length > 0) {
+      builder.append('<');
+      typeArguments.forEach((arg, index, arr) => {
+        this.buildType(builder, arg);
+        if (index < arr.length - 1) {
+          builder.append(', ');
+        }
+      });
+      builder.append('>');
     }
   }
 
