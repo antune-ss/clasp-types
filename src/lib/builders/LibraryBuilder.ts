@@ -1,8 +1,8 @@
-import { Namespace } from "../Namespace";
-import { TypedocKind } from "../schemas/TypedocJson";
-import { ClaspJson } from "../schemas/ClaspJson";
-import { Builder } from "./Builder";
-import { PackageJson } from "../schemas/PackageJson";
+import { Namespace } from "../Namespace.js";
+import { TypedocKind, ReflectionKind } from "../schemas/TypedocJson.js";
+import { ClaspJson } from "../schemas/ClaspJson.js";
+import { Builder } from "./Builder.js";
+import { PackageJson } from "../schemas/PackageJson.js";
 
 export class LibraryBuilder extends Builder {
 
@@ -36,37 +36,53 @@ export class LibraryBuilder extends Builder {
   }
 
   /**
-   * Prepare kind with library class from functions and enum
+   * Prepare kind with library class from functions, enums and variables
    */
   private prepare(kind: TypedocKind): TypedocKind {
-    kind.kindString = 'Module'
-    kind.flags.isPublic = true;
+    kind.kind = ReflectionKind.Module;
+
+    if (!kind.comment) kind.comment = {};
+
     kind.name = this.claspJson.library.namespace;
 
-    let functions = kind.children.filter(kind => kind.flags.isPublic).filter(kind => kind.kindString === 'Function');
+    if (!kind.children) kind.children = [];
+    let children = kind.children;
+
+    const isPublic = (k: TypedocKind) => k.flags?.isPublic || false;
+    
+    let functions = children
+      .filter(isPublic)
+      .filter(k => k.kind === ReflectionKind.Function);
+
     let library: TypedocKind = {
       name: this.claspJson.library.name,
-      comment: {
-        shortText: `The main entry point to interact with ${this.claspJson.library.name}`,
-        text: `Script ID: **${this.claspJson.scriptId}**`
-      },
-      kindString: 'Class',
-      children: functions,
+      kind: ReflectionKind.Class,
       flags: {
         isPublic: true
       },
-      signatures: []
+      children: functions,
+      signatures: [],
+      comment: {
+        summary: [
+          {
+            kind: 'text',
+            text: `The main entry point to interact with ${this.claspJson.library.name}\n\nScript ID: **${this.claspJson.scriptId}**`
+          }
+        ]
+      }
     }
 
-    let enums = kind.children.filter(kind => kind.flags.isPublic).filter(kind => kind.kindString === 'Enumeration');
+    let enums = children
+      .filter(isPublic)
+      .filter(k => k.kind === ReflectionKind.Enum);
 
     enums.forEach(e => {
-      let property = {
+      let property: TypedocKind = {
         name: e.name,
-        kindString: "Property",
+        kind: ReflectionKind.Property,
         flags: {
-          isPublic: true,
-          isTypeof: true
+          isTypeof: true,
+          isPublic: true
         },
         type: {
           type: "reference",
@@ -75,15 +91,39 @@ export class LibraryBuilder extends Builder {
         children: [],
         signatures: [],
       }
-      library.children.unshift(property)
+      
+      if (library.children) {
+        library.children.unshift(property);
+      }
     });
 
-    kind.children.unshift(library);
+    let variables = children
+      .filter(isPublic)
+      .filter(k => k.kind === ReflectionKind.Variable);
+
+    variables.forEach(v => {
+      let varProperty: TypedocKind = {
+        name: v.name,
+        kind: ReflectionKind.Property,
+        flags: {
+          isTypeof: true,
+          isPublic: true
+        },
+        type: {
+          type: "reference",
+          name: v.name,
+        },
+        children: [],
+        signatures: [],
+      }
+
+      if (library.children) {
+        library.children.unshift(varProperty);
+      }
+    });
+
+    children.unshift(library);
 
     return kind;
   }
-
-
-
-
 }

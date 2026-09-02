@@ -1,30 +1,19 @@
 #!/usr/bin/env node
 
-const program = require('commander');
+import { Command } from 'commander';
 import * as TypeDoc from 'typedoc';
-import * as ts from 'typescript';
-import * as fs from "fs-extra";
-import { LibraryBuilder } from "./lib/builders/LibraryBuilder";
-import { ClientSideBuilder } from "./lib/builders/ClientSideBuilder";
-import { ReadmeBuilder } from "./lib/builders/ReadmeBuilder";
-import { LicenseBuilder } from "./lib/builders/LicenseBuilder";
-import { PackageJson } from './lib/schemas/PackageJson';
-import { ClaspJson } from './lib/schemas/ClaspJson';
-import { TypedocKind } from './lib/schemas/TypedocJson';
+import fs from 'fs-extra';
+import path from 'path';
 
-const typedocApp = new TypeDoc.Application();
-typedocApp.options.addReader(new TypeDoc.TSConfigReader());
-typedocApp.options.addReader(new TypeDoc.TypeDocReader());
-typedocApp.bootstrap({
-  mode: 'file',
-  logger: 'none',
-  target: ts.ScriptTarget.ES5,
-  module: ts.ModuleKind.CommonJS,
-  types : [],
-  experimentalDecorators: true,
-  ignoreCompilerErrors: true,
-  excludeExternals: true
-});
+import { LibraryBuilder } from './lib/builders/LibraryBuilder.js';
+import { ClientSideBuilder } from './lib/builders/ClientSideBuilder.js';
+import { ReadmeBuilder } from './lib/builders/ReadmeBuilder.js';
+import { LicenseBuilder } from './lib/builders/LicenseBuilder.js';
+import { PackageJson } from './lib/schemas/PackageJson.js';
+import { ClaspJson } from './lib/schemas/ClaspJson.js';
+import { TypedocKind } from './lib/schemas/TypedocJson.js';
+
+const program = new Command();
 
 program
   .description("Generate d.ts for clasp projects. File [.clasp.json] required")
@@ -34,16 +23,19 @@ program
   .option('-r, --root <folder>', 'Root folder of [.clasp.json] and [package.json] files', '.')
   .parse(process.argv);
 
+const options = program.opts();
 
-let rootDir: string = program.root;
-let srcDir: string = `${rootDir}/${program.src}`;
-let outDir: string = `${rootDir}/${program.out}`;
-let gsRun: boolean = program.client;
+let rootDir: string = path.resolve(options.root);
+let srcDir: string = path.resolve(rootDir, options.src).replace(/\\/g, '/');
+let outDir: string = path.resolve(rootDir, options.out);
+let gsRun: boolean = options.client;
 let filename = 'index.d.ts';
+
+await fs.ensureDir(outDir);
 
 
 //Load .clasp.json
-const claspJsonPath = `${rootDir}/.clasp.json`;
+const claspJsonPath = path.resolve(rootDir, '.clasp.json');
 let claspJson: ClaspJson;
 try {
   claspJson = JSON.parse(fs.readFileSync(claspJsonPath).toString());
@@ -53,7 +45,7 @@ try {
 }
 
 //Load package.json
-const packageJsonPath = `${rootDir}/package.json`;
+const packageJsonPath = path.resolve(rootDir, 'package.json');
 let packageJson: PackageJson;
 try {
   packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
@@ -62,15 +54,20 @@ try {
   process.exit(1);
 }
 
-const files = typedocApp.expandInputFiles([srcDir]);
-const project = typedocApp.convert(files);
+
+// Start typedoc
+const typedocApp = await TypeDoc.Application.bootstrapWithPlugins({
+  entryPoints: [`${srcDir}/**/*.ts`], 
+  tsconfig: path.resolve(rootDir, 'tsconfig.json')
+})
+
+const project = await typedocApp.convert();
 
 if (project) {
-  const apiModelFilePath = `${outDir}/.clasp-types-temp-api-model__.json`;
+  const apiModelFilePath = path.resolve(outDir, 'clasp-types-temp-api-model__.json');
   try {
-
     //Generate api model
-    typedocApp.generateJson(project, apiModelFilePath);
+    await typedocApp.generateJson(project, apiModelFilePath);
 
     //Generate types
     let rawdata = fs.readFileSync(apiModelFilePath);
@@ -82,19 +79,21 @@ if (project) {
       generateLibraryTypes(rootTypedoKind);
     }
 
+
+  } catch (error) {
+    console.error('Error processing while processing types: ', error);
+    process.exit(1); 
   } finally {
     //Tear down
     fs.remove(apiModelFilePath);
   }
-
 } else {
   console.log('Error reading .ts source files')
   process.exit(1);
 }
 
 
-
-function generateLibraryTypes(rootTypedoKind: TypedocKind) {
+function generateLibraryTypes(rootTypedocKind: TypedocKind) {
   if (!claspJson.library || !claspJson.library.name || !claspJson.library.namespace) {
     console.log('ERROR - Add library info to .clasp.json. Example:');
     console.log();
@@ -125,22 +124,29 @@ function generateLibraryTypes(rootTypedoKind: TypedocKind) {
   }
 
   packageJson.types = `./${filename}`;
-  fs.outputFileSync(`${outDir}/${packageJson.name}/package.json`, JSON.stringify(packageJson, null, 2));
 
-  //README.md
+  const packageOutputDir = path.resolve(outDir, packageJson.name);
+
+  // package.json
+  const packageJsonPath = path.resolve(packageOutputDir, 'package.json');
+  fs.outputFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+  // README.md
   let readmeBuilder = new ReadmeBuilder(packageJson, claspJson);
-  fs.outputFileSync(`${outDir}/${packageJson.name}/README.md`, readmeBuilder.build().getText());
+  const readmePath = path.resolve(packageOutputDir, 'README.md');
+  fs.outputFileSync(readmePath, readmeBuilder.build().getText());
 
-  //LICENSE
+  // LICENSE
   let licenseBuilder = new LicenseBuilder(packageJson);
-  fs.outputFileSync(`${outDir}/${packageJson.name}/LICENSE`, licenseBuilder.build().getText());
+  const licensePath = path.resolve(packageOutputDir, 'LICENSE');
+  fs.outputFileSync(licensePath, licenseBuilder.build().getText());
 
-  //Library
-  let builder = new LibraryBuilder(rootTypedoKind, claspJson, packageJson);
-  const filepath = `${outDir}/${packageJson.name}/${filename}`;
+  // Library (.d.ts)
+  let builder = new LibraryBuilder(rootTypedocKind, claspJson, packageJson);
+  const filepath = path.resolve(packageOutputDir, filename);
   fs.outputFileSync(filepath, builder.build().getText());
 
-  console.log(`Generated ${claspJson.library.name} definitions at ${outDir}/`);
+  console.log(`Generated ${claspJson.library.name} definitions at ${packageOutputDir}`);
 }
 
 /**
@@ -148,8 +154,9 @@ function generateLibraryTypes(rootTypedoKind: TypedocKind) {
  */
 function getGSRunTypes(rootTypedoKind: TypedocKind) {
   let builder = new ClientSideBuilder(rootTypedoKind);
-  const filepath = `${outDir}/@types/google.script.types/${filename}`;
-  fs.outputFileSync(filepath, builder.build().getText());
-  console.log(`Generated google.script.types definitions at ${outDir}/@types/`);
-}
 
+  const filepath = path.resolve(outDir, '@types', 'google.script.types', filename);
+  fs.outputFileSync(filepath, builder.build().getText());
+
+  console.log(`Generated google.script.types definitions at ${filepath}`);
+}

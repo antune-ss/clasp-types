@@ -1,16 +1,20 @@
 {
-    "name": "clasp-types",
-    "version": "1.4.2",
-    "description": "A d.ts generator for clasp projects",
-    "homepage": "https://github.com/bkper/clasp-types#readme",
+    "name": "@antune-ss/clasp-types",
+    "version": "2.0.0",
+    "type": "module",
+    "description": "Generate d.ts from Google Apps Script clasp projects (TypeDoc 0.28 compatible)",
+    "homepage": "https://github.com/antune-ss/clasp-types#readme",
     "main": "./dist/index.js",
     "bin": {
         "clasp-types": "./dist/index.js"
     },
-    "author": "Mael Caldas (https://github.com/maelcaldas)",
+    "author": "Gustavo Antunes",
+    "contributors": [
+        "Mael Caldas (https://github.com/maelcaldas)"
+    ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/bkper/clasp-types.git"
+        "url": "https://github.com/antune-ss/clasp-types.git"
     },
     "license": "MIT",
     "scripts": {
@@ -26,18 +30,18 @@
         "postversion": "git push && git push --tags && yarn publish --access public --new-version $npm_package_version && echo \"Successfully released version $npm_package_version!\""
     },
     "devDependencies": {
-        "@types/fs-extra": "^8.1.0",
-        "@types/node": "^14.0.1",
-        "copyfiles": "^2.2.0",
-        "nodemon": "^2.0.4",
-        "rimraf": "^3.0.2",
-        "ts-node": "^8.10.1",
-        "typescript": "^3.9.2"
+        "@types/fs-extra": "^11.0.4",
+        "@types/node": "^26.2.0",
+        "copyfiles": "^2.4.1",
+        "nodemon": "^3.1.14",
+        "rimraf": "^6.1.3",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3"
     },
     "dependencies": {
-        "commander": "^5.1.0",
-        "fs-extra": "^9.0.0",
-        "typedoc": "^0.17.6"
+        "commander": "^15.0.0",
+        "fs-extra": "^11.4.0",
+        "typedoc": "^0.28.20"
     },
     "keywords": [
         "google-apps-script",

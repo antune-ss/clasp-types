@@ -1,11 +1,16 @@
-import { Builder } from "./Builder";
-import { TypedocKind } from "../schemas/TypedocJson";
-import { Namespace } from "../Namespace";
-import * as fs from "fs-extra";
-import * as path from "path";
+import { Builder } from "./Builder.js";
+import { TypedocKind, ReflectionKind } from "../schemas/TypedocJson.js";
+import { Namespace } from "../Namespace.js";
+
+import fs from "fs-extra";
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export class ClientSideBuilder extends Builder {
-
   rootKind: TypedocKind;
 
   constructor(kind: TypedocKind) {
@@ -23,67 +28,75 @@ export class ClientSideBuilder extends Builder {
    * Prepare TypedocKind with functions
    */
   private prepare(kind: TypedocKind): TypedocKind {
-
-    kind.kindString = 'Module'
-    kind.flags.isPublic = true;
+    kind.kind = ReflectionKind.Module;
     kind.name = 'script';
 
-    let children = kind.children.filter(kind => kind.flags.isPublic).filter(kind => kind.kindString === 'Function').map(f => {
-      return {
-        ...f,
-        signatures: [
-          {
-            ...f.signatures[0],
-            comment: undefined,
-            type: {
-              type: "intrinsic",
-              name: `void${f.signatures[0].type.name ? ` //${f.signatures[0].type.name}` : ''}`
+    if (!kind.children) kind.children = [];
+    let children = kind.children;
+
+    const isPublic = (k: TypedocKind) => k.flags?.isPublic || false;
+
+    let functions = children
+      .filter(isPublic)
+      .filter(k => k.kind === ReflectionKind.Function)
+      .map(f => {
+        const sig = f.signatures?.[0];
+        if (!sig) return f;
+
+        return {
+          ...f,
+          signatures: [
+            {
+              ...sig,
+              comment: undefined, // Clean old comments
+              type: {
+                type: 'intrinsic',
+                name: `void${sig.type?.name ? ` //${sig.type.name}` : ''}`
+              }
             }
-          }
-        ],
-      }
-    });
+          ]
+        }
+      });
 
-    children.unshift(JSON.parse(fs.readFileSync(path.join(__dirname, 'withUserObject.json')).toString()));
-    children.unshift(JSON.parse(fs.readFileSync(path.join(__dirname, 'withFailureHandler.json')).toString()));
-    children.unshift(JSON.parse(fs.readFileSync(path.join(__dirname, 'withSuccessHandler.json')).toString()));
-
-
+    functions.unshift(JSON.parse(fs.readFileSync(path.join(__dirname, 'withUserObject.json')).toString()));
+    functions.unshift(JSON.parse(fs.readFileSync(path.join(__dirname, 'withFailureHandler.json')).toString()));
+    functions.unshift(JSON.parse(fs.readFileSync(path.join(__dirname, 'withSuccessHandler.json')).toString()));
 
     let runner: TypedocKind = {
       name: 'Runner',
-      kindString: 'Class',
-      children: children,
+      kind: ReflectionKind.Class,
       flags: {
         isPublic: true
       },
+      children: functions,
       signatures: []
     }
 
-    let run = {
-      "name": "run",
-      "kindString": "Variable",
-      "flags": {
-        "isExported": true
-      },
-      "type": {
-        "type": "reference",
-        "name": "Runner"
+    let run: TypedocKind = {
+      name: 'run',
+      kind: ReflectionKind.Variable,
+      flags: {
+        isExported: true,
       },
       children: [],
-      signatures: []
+      signatures: [],
+      type: {
+        type: 'reference',
+        name: 'Runner'
+      }
     }
 
+    kind.children = []; 
     kind.children.unshift(runner);
     kind.children.push(run);
     
     return {
       name: 'google',
-      kindString: "Module",
-      children: [kind],
+      kind: ReflectionKind.Namespace,
       flags: {
         isPublic: true
       },
+      children: [kind],
       signatures: []
     }
   }

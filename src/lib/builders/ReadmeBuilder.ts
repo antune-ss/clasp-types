@@ -1,6 +1,6 @@
-import { PackageJson } from "../schemas/PackageJson";
-import { Builder } from "./Builder";
-import { ClaspJson } from "../schemas/ClaspJson";
+import { PackageJson } from "../schemas/PackageJson.js";
+import { Builder } from "./Builder.js";
+import { ClaspJson } from "../schemas/ClaspJson.js";
 
 export class ReadmeBuilder extends Builder {
 
@@ -41,7 +41,7 @@ export class ReadmeBuilder extends Builder {
     .append('```').doubleLine()
     .append('[Learn more](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#types-typeroots-and-types) about **@types**, **typeRoots** and **types**').doubleLine()
     this.append('# Details').doubleLine()
-    .append(`Generated using [clasp-types](https://github.com/maelcaldas/clasp-types)`).doubleLine()
+    .append(`Generated using [clasp-types](https://github.com/antune-ss/clasp-types)`).doubleLine()
     return this;
   }
 

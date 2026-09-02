@@ -1,4 +1,3 @@
-[BkperApp]: https://github.com/bkper/bkper-app
 [API Extractor]: https://api-extractor.com/
 [grant]: https://github.com/grant/google-apps-script-dts
 [motemen]: https://github.com/motemen/dts-google-apps-script
@@ -19,6 +18,8 @@
 
 [![npm](https://img.shields.io/npm/v/clasp-types)](https://www.npmjs.com/package/clasp-types)
 
+*(🇧🇷 [Leia em Português](./README.pt-br.md))*
+
 A [TypeScript] definitions generator for [clasp] projects to get **autocomplete** and **type checking** for your Google Apps Script Object Oriented [Libraries] and [Client-side API].
 
 *Library:*
@@ -27,7 +28,7 @@ A [TypeScript] definitions generator for [clasp] projects to get **autocomplete*
 *Client-side API:*
 ![client-side-api-autocomplete](https://raw.githubusercontent.com/bkper/clasp-types/master/imgs/client-side-api-autocomplete.png)
 
-It works like the [API Extractor], reading the ```@public``` comment annotations on any global function, class, interface or enum you want to expose, and generating d.ts files consistently.
+It works like the [API Extractor], reading the ```@public``` comment annotations on any global function, class, interface, variables or enum you want to expose, and generating d.ts files consistently.
 
 ## Features
 
@@ -70,7 +71,7 @@ Optional params:
 ## Library setup
 
 
-### 1) Add your library *namespace* and *name* to the ```.clasp.json```:
+### 1) Add your library *namespace* and *name* to the ```.clasp.json```, they must be different:
 ```json
 {
   "scriptId": "1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF",
@@ -256,17 +257,7 @@ glob-exec --foreach './build/**/*.html' --  'cat {{file}} | inline-source --root
 
 ## Background
 
-The clasp-types was originally created as a foundation for the [BkperApp] library and the Bkper [Add-on for Google Sheets], with inspirations on the [API Extractor], [DefinitelyTyped] and previous work from [grant], [motemen] and [mtgto] - thank you guys :-)
-
-[Libraries] are a great way to share code between scripts, but, once published and others start using it, it requires some level of care like any other public API, so, applying some [API Extractor] concepts and principles help to keep the quality of the Library and avoid accidental breaks.
-
-[DefinitelyTyped] is an amazing initiative and works really well for publishing types for thirdy-party libraries written in js, as well as for the Google Apps Script built-in and advanced services, although, as its recommended in the [official declaration publishing documentation](https://www.typescriptlang.org/docs/handbook/declaration-files/publishing.html), for libraries written in TypeScript, build its own npm package is favored, and give some advantages:
-
-- Instant publishing
-- Release automation
-- [Dist-tag](https://docs.npmjs.com/cli/dist-tag) for mapping script versions
-
-The down side is that it requires one aditional aditional types configuration step, so, clasp-types automatically generate a package ready to publish, with instructions on README for scoped packages to setup the ```typeRoots``` and non scoped packages to setup the ```types```.
+Dont know yet
 
 
 ## Help welcome
@@ -276,3 +267,7 @@ The down side is that it requires one aditional aditional types configuration st
 - Generate ```d.ts``` fom a well documented ```js``` library, so it can also work for libraries such as [OAuth2](https://github.com/gsuitedevs/apps-script-oauth2)
 
 - Generate client ```ts``` ([like this](https://github.com/google/apis-client-generator)) and ```d.ts``` from [openapi](https://swagger.io/specification/) and [API Discovery](https://developers.google.com/discovery/) specs, for [Advanced Services](https://developers.google.com/apps-script/guides/services/advanced) like libraries
+
+## Credits
+
+This project is a TypeDoc 0.28 compatible fork of the original [clasp-types](https://github.com/bkper/clasp-types) created by [Mael Caldas](https://github.com/maelcaldas).

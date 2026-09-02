@@ -1,6 +1,6 @@
-import { PackageJson } from "../schemas/PackageJson";
-import { Builder } from "./Builder";
-import { ClaspJson } from "../schemas/ClaspJson";
+import { PackageJson } from "../schemas/PackageJson.js";
+import { Builder } from "./Builder.js";
+import { ClaspJson } from "../schemas/ClaspJson.js";
 
 export class LicenseBuilder extends Builder {
 

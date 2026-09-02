@@ -1,8 +1,7 @@
-import { Builder } from "./builders/Builder";
-import { TypedocKind, TypedocComment, TypedocType, TypedocSignature, TypedocParameter } from "./schemas/TypedocJson";
+import { Builder } from "./builders/Builder.js";
+import { TypedocKind, TypedocComment, TypedocType, TypedocSignature, TypedocParameter, TypedocContent } from "./schemas/TypedocJson.js";
 
 export abstract class Definition {
-
   protected kind: TypedocKind;
   protected depth: number;
 
@@ -22,38 +21,39 @@ export abstract class Definition {
   abstract render(builder: Builder): void;
 
   protected addComment(builder: Builder, comment: TypedocComment | undefined): void {
-    if (comment && (comment.shortText || comment.text || comment.returns || comment.tags)) {
-      builder.append(`${this.ident()}/**`).line()
-      if (comment.shortText) {
-        builder.append(`${this.ident()} * ${this.identBreaks(comment.shortText)}`).line()
-        if (comment.text || comment.returns || comment.tags) {
-          builder.append(`${this.ident()} *`).line()
-        }
+    if (!comment) return;
+
+    const extractText =(content?: TypedocContent[]) => {
+      return content ? content.map(c => c.text).join('') : '';
+    }
+
+    const summaryText = extractText(comment.summary).trim();
+    const blockTags = comment.blockTags || [];
+    const hasTags = blockTags.length > 0;
+
+    if (summaryText || hasTags) {
+      builder.append(`${this.ident()}/**`).line();
+
+      // Escreve o Sumário Principal
+      if (summaryText) {
+        builder.append(`${this.ident()} * ${this.identBreaks(summaryText)}`).line();
+        if (hasTags) builder.append(`${this.ident()} *`).line() // Linha em branco de separação
       }
-      if (comment.text) {
-        builder.append(`${this.ident()} * ${this.identBreaks(comment.text)}`).line()
-        if (comment.returns || comment.tags) {
-          builder.append(`${this.ident()} *`).line()
-        }        
-      }
-      if (comment.returns) {
-        // builder.append(`${this.ident()} *`).line()
-        builder.append(`${this.ident()} * @returns ${this.identBreaks(comment.returns)}`).line()
-        if (comment.tags) {
-          builder.append(`${this.ident()} *`).line()
+
+      for (let i = 0; i < blockTags.length; i++) {
+        const tag = blockTags[i];
+
+        const namePart = tag.name ? ` ${tag.name}` : '';
+        const tagText = extractText(tag.content).trim();
+
+        builder.append(`${this.ident()} * ${tag.tag}${namePart} ${this.identBreaks(tagText)}`).line();
+
+        if (i + 1 < blockTags.length) {
+          builder.append(`${this.ident()} *`).line(); // Linha em branco entre tags
         }
       }
 
-      if (comment.tags) {
-        for (let i = 0; i < comment.tags.length; i++) {
-          const tag = comment.tags[i];
-          builder.append(`${this.ident()} * @${tag.tag} ${this.identBreaks(tag.text)}`).line()
-          if (i+1 < comment.tags.length) {
-            builder.append(`${this.ident()} *`).line()
-          }
-        }
-      }
-      builder.append(`${this.ident()} */`).line()
+      builder.append(`${this.ident()} */`).line();
     }
   }
 
@@ -61,10 +61,12 @@ export abstract class Definition {
     if (text == null) {
       return '';
     }
+
     if (text.endsWith('\n')) {
-      var pos = text.lastIndexOf('\n');
+      const pos = text.lastIndexOf('\n');
       text = text.substring(0, pos);
     }
+
     return text.replace(new RegExp("\n", 'g'), `\n${this.ident()} * `)
   }
 
@@ -87,31 +89,33 @@ export abstract class Definition {
         if (type.declaration.signatures && type.declaration.signatures.length > 0) {
           let signature = type.declaration.signatures[0];
           builder.append('(')
-          this.buildParams(builder, signature.parameters)
+          this.buildParams(builder, signature.parameters || [])
           builder.append(')')
           builder.append(' => ')
           this.buildType(builder, signature.type)
         } else if (type.declaration.children && type.declaration.children.length > 0) {
           builder.append('{')
-          this.buildParams(builder, type.declaration.children)
+          this.buildParams(builder, type.declaration.children || [])
           builder.append('}')
         } else if (type.declaration.indexSignature && type.declaration.indexSignature.length) {
           let indexSignature = type.declaration.indexSignature[0];
           builder.append('{[')
-          this.buildParams(builder, indexSignature.parameters)
+          this.buildParams(builder, indexSignature.parameters || [])
           builder.append(']: ')
           this.buildType(builder, indexSignature.type)
           builder.append('}')
         }
         return;
       }
+      
       if (type.name === 'true' || type.name === 'false') {
         builder.append('boolean');
       } else if (type.name) {
         builder.append(type.name);
         this.buildTypeArguments(builder, type.typeArguments);
-      } else if (type.value) {
-        builder.append(`"${type.value}"`);
+      } else if (type.value !== undefined) {
+        const isString = typeof type.value === 'string';
+        builder.append(isString ? `"${type.value}"` : String(type.value));
       }
     }
   }
@@ -129,12 +133,11 @@ export abstract class Definition {
     }
   }
 
-  protected buildParams(builder: Builder, parameters: TypedocParameter[]) {
+  protected buildParams(builder: Builder, parameters?: TypedocParameter[]) {
     if (parameters) {
       parameters.forEach((param, key, arr) => {
         this.buildParam(builder, param)
         if (!Object.is(arr.length - 1, key)) {
-          //Last item
           builder.append(', ')
         }
       });
@@ -142,10 +145,10 @@ export abstract class Definition {
   }
 
   protected buildParam(builder: Builder, param: TypedocParameter): void {
-    let sep = param.flags.isOptional ? '?:' : ':';
-    let rest = param.flags.isRest ? '...' : '';
+    let sep = param.flags?.isOptional ? '?:' : ':';
+    let rest = param.flags?.isRest ? '...' : '';
+    
     builder.append(rest).append(param.name).append(sep).append(' ');
     this.buildType(builder, param.type);
   }
-
 }

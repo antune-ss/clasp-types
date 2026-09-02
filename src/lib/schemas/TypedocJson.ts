@@ -1,49 +1,60 @@
 export interface TypedocKind {
   name: string
-  comment?: TypedocComment
-  kindString: string
-  children: TypedocKind[]
-  signatures: TypedocSignature[]
+  kind: ReflectionKind | number
   flags: {
-    isPublic?: boolean
     isExported?: boolean
     isOptional?: boolean
-    //custom ;-)
     isTypeof?: boolean
+    isConst?: boolean
+    isPublic?: boolean
   }
+  children?: TypedocKind[]
+  signatures?: TypedocSignature[]
+  comment?: TypedocComment
   defaultValue?: string
   type?: TypedocType
   typeParameter?: TypedocTypeParameter[]
 }
 
 export interface TypedocTypeParameter {
+  id?: number
   name: string
+  variant?: string
+  kind?: number
   type?: TypedocType
 }
 
+export interface TypedocSignature {
+  id?: number
+  name?: string
+  variant?: string
+  kind?: number
+  type: TypedocType
+  comment?: TypedocComment
+  parameters?: TypedocParameter[]
+}
 
 export interface TypedocComment {
-    shortText?: string,
-    text?: string,
-    returns?: string,
-    tags?: TypedocTag[]
+  summary?: TypedocContent[]
+  modifierTags?: string[]
+  blockTags?: TypedocTag[]
 }
 
 export interface TypedocTag {
-  tag: string,
-  text?: string
+  tag: string
+  name?: string
+  content: TypedocContent[]
 }
 
-export interface TypedocSignature {
-  type: TypedocType;
-  comment?: TypedocComment;
-  parameters: TypedocParameter[]
+export interface TypedocContent {
+  kind: string
+  text: string
 }
 
 export interface TypedocType {
   type: string
   value?: string
-  name: string
+  name?: string
   declaration?: TypedocDeclaration
   types?: TypedocType[]
   elementType?: TypedocType
@@ -51,8 +62,13 @@ export interface TypedocType {
 }
 
 export interface TypedocParameter {
+  id?: number
   name: string
+  variant?: string
+  kind?: number
   type: TypedocType
+  defaultValue?: string
+  comment?: TypedocComment
   flags: {
     isOptional?: boolean
     isRest?: boolean
@@ -60,7 +76,28 @@ export interface TypedocParameter {
 }
 
 export interface TypedocDeclaration {
-  signatures: TypedocSignature[];
-  children: TypedocParameter[];
-  indexSignature: TypedocSignature[];
+  signatures?: TypedocSignature[]
+  children?: TypedocParameter[]
+  indexSignature?: TypedocSignature[]
+}
+
+export enum ReflectionKind {
+  Project = 1,
+  Module = 2,
+  Namespace = 4,
+  Enum = 8,
+  EnumMember = 16,
+  Variable = 32,
+  Function = 64,
+  Class = 128,
+  Interface = 256,
+  Constructor = 512,
+  Property = 1024,
+  Method = 2048,
+  CallSignature = 4096,
+  IndexSignature = 8192,
+  ConstructorSignature = 16384,
+  Parameter = 32768,
+  TypeLiteral = 65536,
+  TypeParameter = 131072
 }

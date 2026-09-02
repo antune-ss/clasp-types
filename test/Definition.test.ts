@@ -2,12 +2,12 @@
 import { describe, expect, test } from "bun:test";
 import { Definition } from "../src/lib/Definition";
 import { Builder } from "../src/lib/builders/Builder";
-import { TypedocType } from "../src/lib/schemas/TypedocJson";
+import { TypedocType, ReflectionKind } from "../src/lib/schemas/TypedocJson.js";
 
 // Concrete test implementation to expose protected methods
 class TestDefinition extends Definition {
     constructor() {
-        super({ name: "Test", kindString: "Class", children: [], signatures: [], flags: {} }, 0);
+        super({ name: "Test", kind: ReflectionKind.Class, children: [], signatures: [], flags: {} }, 0);
     }
 
     render(builder: Builder): void {

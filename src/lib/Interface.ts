@@ -1,8 +1,8 @@
-import { Builder } from "./builders/Builder";
-import { Definition } from "./Definition";
-import { Method } from "./Method";
-import { Property } from "./Property";
-import { TypedocKind, TypedocType } from "./schemas/TypedocJson";
+import { Builder } from "./builders/Builder.js";
+import { Definition } from "./Definition.js";
+import { Method } from "./Method.js";
+import { Property } from "./Property.js";
+import { TypedocComment, TypedocKind, TypedocType, ReflectionKind } from "./schemas/TypedocJson.js";
 
 // Simple builder to capture type rendering as string
 class StringBuilderCapture extends Builder {
@@ -18,9 +18,23 @@ export class Interface extends Definition {
   }
   
   render(builder: Builder): void {
-    let methods = this.kind.children.filter(k => this.kind.kindString === 'Interface' ? true : k.flags.isPublic).filter(k => k.kindString === 'Method' || k.kindString === 'Function').map(k => new Method(k, this.tab()));
-    let properties = this.kind.children.filter(k => this.kind.kindString === 'Interface' ? true : k.flags.isPublic).filter(k => k.kindString === 'Property').map(k => new Property(k, this.tab()));
+    let children = this.kind.children || [];
+
+    const isPublic = (k: TypedocKind) => k.flags?.isPublic || false;
+    const isOriginalInterface = this.kind.kind === ReflectionKind.Interface;
+
+    let methods = children
+      .filter(k => isOriginalInterface ? true : isPublic(k))
+      .filter(k => k.kind === ReflectionKind.Method || k.kind === ReflectionKind.Function)
+      .map(k => new Method(k, this.tab()))
+
+    let properties = children
+      .filter(k => isOriginalInterface ? true : isPublic(k))
+      .filter(k => k.kind === ReflectionKind.Property)
+      .map(k => new Property(k, this.tab()));
+
     this.addComment(builder, this.kind.comment);
+
     if (methods.length > 0 || properties.length > 0) {
       const typeParams = this.buildTypeParameters();
       builder.append(`${this.ident()}export interface ${this.kind.name}${typeParams} {`).doubleLine()

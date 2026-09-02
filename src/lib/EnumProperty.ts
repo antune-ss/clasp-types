@@ -1,6 +1,6 @@
-import { Definition } from "./Definition";
-import { Builder } from "./builders/Builder";
-import { TypedocKind } from "./schemas/TypedocJson";
+import { Definition } from "./Definition.js";
+import { Builder } from "./builders/Builder.js";
+import { TypedocKind } from "./schemas/TypedocJson.js";
 
 export class EnumProperty extends Definition {
 
@@ -10,7 +10,11 @@ export class EnumProperty extends Definition {
 
   render(builder: Builder): void {
     this.addComment(builder, this.kind.comment);
-    builder.append(`${this.ident()}${this.kind.name} = ${this.kind.defaultValue},`).doubleLine()
+
+    // Se não tiver valor padrão, a string fica vazia (não imprime o '=' falso)
+    let value = this.kind.defaultValue !== undefined ? ` = ${this.kind.defaultValue}` : '';
+
+    builder.append(`${this.ident()}${this.kind.name}${value},`).doubleLine()
   }
   
 }

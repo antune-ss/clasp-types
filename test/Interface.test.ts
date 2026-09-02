@@ -2,7 +2,7 @@
 import { describe, expect, test } from "bun:test";
 import { Interface } from "../src/lib/Interface";
 import { Builder } from "../src/lib/builders/Builder";
-import { TypedocKind } from "../src/lib/schemas/TypedocJson";
+import { TypedocKind, ReflectionKind } from "../src/lib/schemas/TypedocJson.js";
 
 // Concrete builder for testing
 class TestBuilder extends Builder {
@@ -14,7 +14,7 @@ class TestBuilder extends Builder {
 function createKind(overrides: Partial<TypedocKind>): TypedocKind {
     return {
         name: "TestInterface",
-        kindString: "Interface",
+        kind: ReflectionKind.Interface,
         children: [],
         signatures: [],
         flags: { isExported: true },
@@ -39,7 +39,7 @@ describe("Interface.render", () => {
                 children: [
                     {
                         name: "value",
-                        kindString: "Property",
+                        kind: ReflectionKind.Property,
                         children: [],
                         signatures: [],
                         flags: {},
@@ -58,7 +58,7 @@ describe("Interface.render", () => {
                 children: [
                     {
                         name: "doSomething",
-                        kindString: "Method",
+                        kind: ReflectionKind.Method,
                         children: [],
                         flags: {},
                         signatures: [
@@ -88,7 +88,7 @@ describe("Interface.render", () => {
                 children: [
                     {
                         name: "value",
-                        kindString: "Property",
+                        kind: ReflectionKind.Property,
                         children: [],
                         signatures: [],
                         flags: {},
@@ -110,7 +110,7 @@ describe("Interface.render", () => {
                 children: [
                     {
                         name: "key",
-                        kindString: "Property",
+                        kind: ReflectionKind.Property,
                         children: [],
                         signatures: [],
                         flags: {},
@@ -134,7 +134,7 @@ describe("Interface.render", () => {
                 children: [
                     {
                         name: "entity",
-                        kindString: "Property",
+                        kind: ReflectionKind.Property,
                         children: [],
                         signatures: [],
                         flags: {},
@@ -159,7 +159,7 @@ describe("Interface.render", () => {
                 children: [
                     {
                         name: "item",
-                        kindString: "Property",
+                        kind: ReflectionKind.Property,
                         children: [],
                         signatures: [],
                         flags: {},
@@ -189,7 +189,7 @@ describe("Interface.render", () => {
                 children: [
                     {
                         name: "resource",
-                        kindString: "Property",
+                        kind: ReflectionKind.Property,
                         children: [],
                         signatures: [],
                         flags: {},
