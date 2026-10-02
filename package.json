@@ -1,6 +1,6 @@
 {
     "name": "@antunes_s/clasp-types",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "type": "module",
     "description": "Generate d.ts from Google Apps Script clasp projects (TypeDoc 0.28 compatible)",
     "homepage": "https://github.com/antune-ss/clasp-types#readme",
