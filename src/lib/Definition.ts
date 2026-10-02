@@ -111,7 +111,7 @@ export abstract class Definition {
       if (type.name === 'true' || type.name === 'false') {
         builder.append('boolean');
       } else if (type.name) {
-        builder.append(type.name);
+        builder.append(type.qualifiedName || type.name);
         this.buildTypeArguments(builder, type.typeArguments);
       } else if (type.value !== undefined) {
         const isString = typeof type.value === 'string';

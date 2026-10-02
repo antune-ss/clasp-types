@@ -55,6 +55,7 @@ export interface TypedocType {
   type: string
   value?: string
   name?: string
+  qualifiedName?: string
   declaration?: TypedocDeclaration
   types?: TypedocType[]
   elementType?: TypedocType
