@@ -46,6 +46,18 @@ export class LibraryBuilder extends Builder {
     kind.name = this.claspJson.library.namespace;
 
     if (!kind.children) kind.children = [];
+
+    let flattened: TypedocKind[] = [];
+    for (let c of kind.children) {
+      // 2 = ReflectionKind.Module (files)
+      if (c.kind === 2 && c.children) {
+        flattened.push(...c.children);
+      } else {
+        flattened.push(c);
+      }
+    }
+    kind.children = flattened;
+
     let children = kind.children;
 
     const isPublic = (k: TypedocKind) => k.flags?.isPublic || k.comment?.modifierTags?.includes('@public') || false;
