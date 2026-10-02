@@ -16,7 +16,7 @@ export class Namespace extends Definition {
   render(builder: Builder): void {
     let children = this.kind.children || [];
 
-    const isPublic = (k: TypedocKind) => k.flags?.isPublic || false;
+    const isPublic = (k: TypedocKind) => k.flags?.isPublic || k.comment?.modifierTags?.includes('@public') || false;
     const isExported = (k: TypedocKind) => k.flags?.isExported || false;
 
     let namespaces = children

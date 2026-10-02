@@ -20,7 +20,7 @@ export class Interface extends Definition {
   render(builder: Builder): void {
     let children = this.kind.children || [];
 
-    const isPublic = (k: TypedocKind) => k.flags?.isPublic || false;
+    const isPublic = (k: TypedocKind) => k.flags?.isPublic || k.comment?.modifierTags?.includes('@public') || false;
     const isOriginalInterface = this.kind.kind === ReflectionKind.Interface;
 
     let methods = children

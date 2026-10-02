@@ -48,7 +48,7 @@ export class LibraryBuilder extends Builder {
     if (!kind.children) kind.children = [];
     let children = kind.children;
 
-    const isPublic = (k: TypedocKind) => k.flags?.isPublic || false;
+    const isPublic = (k: TypedocKind) => k.flags?.isPublic || k.comment?.modifierTags?.includes('@public') || false;
     
     let functions = children
       .filter(isPublic)

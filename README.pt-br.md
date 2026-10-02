@@ -19,6 +19,8 @@
 
 [![npm](https://img.shields.io/npm/v/clasp-types)](https://www.npmjs.com/package/clasp-types)
 
+*(🇺🇸 [Read in English](./README.md))*
+
 Esse é um gerador de definições [TypeScript] para permitir que os projetos [clasp] realizem o **autocomplete** e a **verificação de tipos** para as suas [Bibliotecas] e [Client-side API]'s Orientadas a Objetos do Google Apps Script.
 
 *Biblioteca:*
