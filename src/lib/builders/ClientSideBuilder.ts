@@ -30,6 +30,9 @@ export class ClientSideBuilder extends Builder {
   private prepare(kind: TypedocKind): TypedocKind {
     kind.kind = ReflectionKind.Module;
     kind.name = 'script';
+    kind.flags = {
+      isPublic: true
+    };
 
     if (!kind.children) kind.children = [];
 
@@ -57,6 +60,10 @@ export class ClientSideBuilder extends Builder {
 
         return {
           ...f,
+          flags: {
+            ...f.flags,
+            isPublic: true
+          },
           signatures: [
             {
               ...sig,
