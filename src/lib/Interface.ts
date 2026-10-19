@@ -2,14 +2,7 @@ import { Builder } from "./builders/Builder.js";
 import { Definition } from "./Definition.js";
 import { Method } from "./Method.js";
 import { Property } from "./Property.js";
-import { TypedocComment, TypedocKind, TypedocType, ReflectionKind } from "./schemas/TypedocJson.js";
-
-// Simple builder to capture type rendering as string
-class StringBuilderCapture extends Builder {
-  protected build(): Builder {
-    return this;
-  }
-}
+import { TypedocKind, ReflectionKind } from "./schemas/TypedocJson.js";
 
 export class Interface extends Definition {
 
@@ -36,29 +29,14 @@ export class Interface extends Definition {
     this.addComment(builder, this.kind.comment);
 
     if (methods.length > 0 || properties.length > 0) {
-      const typeParams = this.buildTypeParameters();
+      // TypeDoc >= 0.26 uses typeParameters
+      const typeParams = this.buildTypeParameters(this.kind.typeParameters || this.kind.typeParameter);
       builder.append(`${this.ident()}export interface ${this.kind.name}${typeParams} {`).doubleLine()
+
       properties.forEach(p => p.render(builder))
       methods.forEach(m => m.render(builder))
+      
       builder.append(`${this.ident()}}`).doubleLine();
     }
   }
-
-  private buildTypeParameters(): string {
-    if (!this.kind.typeParameter || this.kind.typeParameter.length === 0) {
-      return '';
-    }
-
-    const params = this.kind.typeParameter.map(param => {
-      if (param.type) {
-        const constraintBuilder = new StringBuilderCapture();
-        this.buildType(constraintBuilder, param.type);
-        return `${param.name} extends ${constraintBuilder.getText()}`;
-      }
-      return param.name;
-    });
-
-    return `<${params.join(', ')}>`;
-  }
-
 }

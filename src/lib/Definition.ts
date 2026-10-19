@@ -1,5 +1,12 @@
 import { Builder } from "./builders/Builder.js";
-import { TypedocKind, TypedocComment, TypedocType, TypedocSignature, TypedocParameter, TypedocContent } from "./schemas/TypedocJson.js";
+import { TypedocKind, TypedocComment, TypedocType, TypedocParameter, TypedocContent, TypedocTypeParameter } from "./schemas/TypedocJson.js";
+
+// Simple builder to capture type rendering as string
+class StringBuilderCapture extends Builder {
+  protected build(): Builder {
+    return this;
+  }
+}
 
 export abstract class Definition {
   protected kind: TypedocKind;
@@ -72,19 +79,40 @@ export abstract class Definition {
 
   protected buildType(builder: Builder, type?: TypedocType): void {
     if (type) {
+      // União (A | B)
       if (type.type === 'union' && type.types) {
         type.types.filter(t => t.name !== 'undefined' && t.name !== 'false').forEach((t, key, arr) => {
-          this.buildType(builder, t)
+          this.buildType(builder, t);
           if (!Object.is(arr.length - 1, key)) {
             //Last item
             builder.append(' | ')
           }
         });
-        return
+        return;
+      
+      // Interseção (A & B)
+      } else if (type.type === 'intersection' && type.types) {
+        type.types.filter(t => t.name !== 'undefined' && t.name !== 'false').forEach((t, key, arr) => {
+          this.buildType(builder, t);
+          if (!Object.is(arr.length - 1, key)) {
+            //Last item
+            builder.append(' & ');
+          }
+        });
+        return;
+
+      // Arrays (T[])
       } else if (type.type === 'array') {
+        const isComplex = type.elementType?.type === 'union' || type.elementType?.type === 'intersection';
+
+        if (isComplex) builder.append('(');
         this.buildType(builder, type.elementType);
-        builder.append('[]')
-        return
+        if (isComplex) builder.append(')');
+        
+        builder.append('[]');
+        return;
+
+      // Funções inline e Objetos literais
       } else if (type.type === 'reflection' && type.declaration) {
         if (type.declaration.signatures && type.declaration.signatures.length > 0) {
           let signature = type.declaration.signatures[0];
@@ -106,13 +134,25 @@ export abstract class Definition {
           builder.append('}')
         }
         return;
+      
+      // Operadores de Tipo ("keyof T")
+      } else if (type.type === 'typeOperator') {
+        if (type.operator) {
+          builder.append(`${type.operator} `);
+        }
+        this.buildType(builder, type.target);
+        return;
+
       }
       
+      // Tipos primitivos, literais e referências (fallback)
       if (type.name === 'true' || type.name === 'false') {
         builder.append('boolean');
+
       } else if (type.name) {
         builder.append(type.qualifiedName || type.name);
         this.buildTypeArguments(builder, type.typeArguments);
+
       } else if (type.value !== undefined) {
         const isString = typeof type.value === 'string';
         builder.append(isString ? `"${type.value}"` : String(type.value));
@@ -150,5 +190,22 @@ export abstract class Definition {
     
     builder.append(rest).append(param.name).append(sep).append(' ');
     this.buildType(builder, param.type);
+  }
+
+  protected buildTypeParameters(typeParameters?: TypedocTypeParameter[]): string {
+    if (!typeParameters || typeParameters.length === 0) {
+      return '';
+    }
+
+    const params = typeParameters.map(param => {
+      if (param.type) {
+        const constraintBuilder = new StringBuilderCapture();
+        this.buildType(constraintBuilder, param.type);
+        return `${param.name} extends ${constraintBuilder.getText()}`;
+      }
+      return param.name;
+    });
+
+    return `<${params.join(', ')}>`;
   }
 }

@@ -14,6 +14,7 @@ export interface TypedocKind {
   defaultValue?: string
   type?: TypedocType
   typeParameter?: TypedocTypeParameter[]
+  typeParameters?: TypedocTypeParameter[]
 }
 
 export interface TypedocTypeParameter {
@@ -32,6 +33,8 @@ export interface TypedocSignature {
   type: TypedocType
   comment?: TypedocComment
   parameters?: TypedocParameter[]
+  typeParameter?: TypedocTypeParameter[]
+  typeParameters?: TypedocTypeParameter[]
 }
 
 export interface TypedocComment {
@@ -60,6 +63,8 @@ export interface TypedocType {
   types?: TypedocType[]
   elementType?: TypedocType
   typeArguments?: TypedocType[]
+  operator?: string
+  target?: TypedocType
 }
 
 export interface TypedocParameter {

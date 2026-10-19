@@ -9,16 +9,21 @@ export class Method extends Definition {
   }
 
   render(builder: Builder): void {
-    let signature = this.kind.signatures?.[0];
-    if (!signature) return;
+    let signatures = this.kind.signatures || [];
+    if (!signatures || signatures.length === 0) return;
 
-    this.addComment(builder, signature.comment);
-    builder.append(`${this.ident()}${this.kind.name}(`);
+    signatures.forEach(signature => {
+      this.addComment(builder, signature.comment);
+      
+      // TypeDoc >= 0.26 uses typeParameters
+      const typeParams = this.buildTypeParameters(signature.typeParameters || signature.typeParameter);
+      builder.append(`${this.ident()}${this.kind.name}${typeParams}(`);
 
-    this.buildParams(builder, signature.parameters);
-    builder.append('): ');
-    
-    this.buildType(builder, signature.type);
-    builder.append(';').doubleLine()
+      this.buildParams(builder, signature.parameters);
+      builder.append('): ');
+
+      this.buildType(builder, signature.type);
+      builder.append(';').doubleLine();
+    });
   }
 }
